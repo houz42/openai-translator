@@ -76,6 +76,7 @@ fn main() {
             return;
         }
         match event {
+            println!("Mouse event: {:?}", event);
             mouce::common::MouseEvent::Press(mouce::common::MouseButton::Left) => {
                 let mut can_show = true;
                 #[cfg(target_os = "macos")]
