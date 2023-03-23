@@ -76,15 +76,9 @@ fn main() {
             return;
         }
         match event {
-            mouce::common::MouseEvent::RelativeMove(x, y) => {
-            }
-            mouce::common::MouseEvent::AbsoluteMove(x, y) => {
-            }
             mouce::common::MouseEvent::Press(mouce::common::MouseButton::Left) => {
-                *PREVIOUS_PRESS_TIME.lock() = std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap()
-                    .as_millis();
+                let current_press_time = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis();
+                *PREVIOUS_PRESS_TIME.lock() = current_press_time;
                 let (x, y): (i32, i32) = windows::get_mouse_location().unwrap();
                 if let Some(handle) = APP_HANDLE.get() {
                     let is_click_on_thumb = match handle.get_window(windows::THUMB_WIN_NAME) {
@@ -108,7 +102,7 @@ fn main() {
                         }
                         None => false
                     };
-                    if is_click_on_thumb {
+                    if is_click_on_thumb && current_press_time - *PREVIOUS_RELEASE_TIME.lock() > 700 {
                         let window = windows::show_main_window(false);
                         window.set_focus().unwrap();
                         utils::send_text((*SELECTED_TEXT.lock()).to_string());
@@ -174,8 +168,6 @@ fn main() {
                         } else {
                             windows::close_thumb();
                         }
-                    } else {
-                        windows::close_thumb();
                     }
                 }
             }
