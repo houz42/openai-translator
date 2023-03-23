@@ -106,9 +106,12 @@ pub fn show_thumb(x: i32, y: i32) {
             .visible(true)
             .resizable(false)
             .skip_taskbar(true)
-            .decorations(false)
-            .hidden_title(true);
+            .decorations(false);
 
+            #[cfg(target_os = "macos")]
+            let window = builder.hidden_title(true).build().unwrap();
+
+            #[cfg(not(target_os = "macos"))]
             let window = builder.build().unwrap();
 
             window.unminimize().unwrap();
