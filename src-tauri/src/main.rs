@@ -109,7 +109,8 @@ fn main() {
                         None => false
                     };
                     if is_click_on_thumb {
-                        windows::show_main_window(false);
+                        let window = windows::show_main_window(false);
+                        window.set_focus().unwrap();
                         utils::send_text((*SELECTED_TEXT.lock()).to_string());
                     }
                 }
