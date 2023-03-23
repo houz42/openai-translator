@@ -77,8 +77,13 @@ fn main() {
         }
         match event {
             mouce::common::MouseEvent::Press(mouce::common::MouseButton::Left) => {
-                let current_press_time = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis();
-                *PREVIOUS_PRESS_TIME.lock() = current_press_time;
+                let mut can_show = true;
+                #[cfg(target_os = "macos")]
+                {
+                    let current_press_time = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis();
+                    *PREVIOUS_PRESS_TIME.lock() = current_press_time;
+                    can_show = current_press_time - *PREVIOUS_RELEASE_TIME.lock() > 700;
+                }
                 let (x, y): (i32, i32) = windows::get_mouse_location().unwrap();
                 if let Some(handle) = APP_HANDLE.get() {
                     let is_click_on_thumb = match handle.get_window(windows::THUMB_WIN_NAME) {
@@ -102,7 +107,7 @@ fn main() {
                         }
                         None => false
                     };
-                    if is_click_on_thumb && current_press_time - *PREVIOUS_RELEASE_TIME.lock() > 700 {
+                    if is_click_on_thumb && can_show {
                         let window = windows::show_main_window(false);
                         window.set_focus().unwrap();
                         utils::send_text((*SELECTED_TEXT.lock()).to_string());
@@ -112,22 +117,29 @@ fn main() {
             mouce::common::MouseEvent::Release(mouce::common::MouseButton::Left) => {
                 let mut is_text_selected_event = false;
                 let (x, y): (i32, i32) = windows::get_mouse_location().unwrap();
-                let (prev_release_x, prev_release_y) = *PREVIOUS_RELEASE_POSITION.lock();
-                *PREVIOUS_RELEASE_POSITION.lock() = (x, y);
-                let mouse_distance = (((x - prev_release_x).pow(2) + (y - prev_release_y).pow(2)) as f64).sqrt();
-                let previous_press_time = *PREVIOUS_PRESS_TIME.lock();
-                let previous_release_time = *PREVIOUS_RELEASE_TIME.lock();
-                let current_release_time = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis();
-                *PREVIOUS_RELEASE_TIME.lock() = current_release_time;
-                if previous_press_time != 0 && previous_release_time < previous_press_time && current_release_time - previous_press_time > 1000 {
-                    is_text_selected_event = true;
+                #[cfg(target_os = "macos")]
+                {
+                    let (prev_release_x, prev_release_y) = *PREVIOUS_RELEASE_POSITION.lock();
+                    *PREVIOUS_RELEASE_POSITION.lock() = (x, y);
+                    let mouse_distance = (((x - prev_release_x).pow(2) + (y - prev_release_y).pow(2)) as f64).sqrt();
+                    let previous_press_time = *PREVIOUS_PRESS_TIME.lock();
+                    let previous_release_time = *PREVIOUS_RELEASE_TIME.lock();
+                    let current_release_time = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis();
+                    *PREVIOUS_RELEASE_TIME.lock() = current_release_time;
+                    if previous_press_time != 0 && previous_release_time < previous_press_time && current_release_time - previous_press_time > 1000 {
+                        is_text_selected_event = true;
+                    }
+                    if previous_release_time != 0 && current_release_time - previous_release_time < 700 && mouse_distance < 30.0 {
+                        is_text_selected_event = true;
+                    }
+                    if !is_text_selected_event {
+                        windows::close_thumb();
+                        return;
+                    }
                 }
-                if previous_release_time != 0 && current_release_time - previous_release_time < 700 && mouse_distance < 30.0 {
+                #[cfg(not(target_os = "macos"))]
+                {
                     is_text_selected_event = true;
-                }
-                if !is_text_selected_event {
-                    windows::close_thumb();
-                    return;
                 }
                 if let Some(handle) = APP_HANDLE.get() {
                     let is_click_on_thumb = match handle.get_window(windows::THUMB_WIN_NAME) {
