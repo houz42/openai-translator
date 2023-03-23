@@ -76,21 +76,26 @@ pub fn get_selected_text() -> Result<String, Box<dyn std::error::Error>> {
         .resolve_resource("resources/get-selected-text.applescript")
         .expect("failed to resolve ocr binary resource");
 
-    let output = std::process::Command::new("osascript")
-        .arg(apple_script)
-        .output()
-        .expect("failed to execute get-selected-text.applescript");
-
-    // check exit code
-    if output.status.success() {
-        // get output content
-        let content = String::from_utf8(output.stdout)
-            .expect("failed to parse get-selected-text.applescript output");
-        // trim content
-        let content = content.trim();
-        Ok(content.to_string())
-    } else {
-        Err("failed to execute get-selected-text.applescript".into())
+    match std::process::Command::new("osascript").arg(apple_script).output() {
+        Ok(output) => {
+            // check exit code
+            if output.status.success() {
+                // get output content
+                let content = String::from_utf8(output.stdout)
+                    .expect("failed to parse get-selected-text.applescript output");
+                // trim content
+                let content = content.trim();
+                Ok(content.to_string())
+            } else {
+                let err = output.stderr
+                    .into_iter()
+                    .map(|c| c as char)
+                    .collect::<String>()
+                    .into();
+                Err(err)
+            }
+        }
+        Err(e) => Err(Box::new(e)),
     }
 }
 
