@@ -8,6 +8,7 @@ pub struct Config {
     pub hotkey: Option<String>,
     pub ocr_hotkey: Option<String>,
     pub restore_previous_position: Option<bool>,
+    pub always_show_icons: Option<bool>,
 }
 
 pub fn get_config() -> Result<Config, Box<dyn std::error::Error>> {

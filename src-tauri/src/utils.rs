@@ -84,7 +84,9 @@ pub fn get_selected_text() -> Result<String, Box<dyn std::error::Error>> {
         // get output content
         let content = String::from_utf8(output.stdout)
             .expect("failed to parse get-selected-text.applescript output");
-        Ok(content)
+        // trim content
+        let content = content.trim();
+        Ok(content.to_string())
     } else {
         Err("failed to execute get-selected-text.applescript".into())
     }

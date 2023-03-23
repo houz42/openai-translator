@@ -41,10 +41,11 @@ set theCount to thePasteboard's changeCount()
 -- Copy selected text to clipboard:
 tell application "System Events" to keystroke "c" using {command down}
 -- Check for changed clipboard:
-repeat 20 times
-    if thePasteboard's changeCount() is not theCount then exit repeat
-    delay 0.1
-end repeat
+delay 0.3
+
+if thePasteboard's changeCount() is theCount then 
+    return ""
+end if
 
 set theSelectedText to the clipboard
 
