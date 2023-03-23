@@ -70,13 +70,13 @@ fn main() {
     }
 
     let hook_result = mouse_manager.hook(Box::new(|event| {
+        println!("Mouse event: {:?}", event);
         let config = config::get_config().unwrap();
         let always_show_icons = config.always_show_icons.unwrap_or(true);
         if !always_show_icons {
             return;
         }
         match event {
-            println!("Mouse event: {:?}", event);
             mouce::common::MouseEvent::Press(mouce::common::MouseButton::Left) => {
                 let mut can_show = true;
                 #[cfg(target_os = "macos")]
