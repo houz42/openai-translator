@@ -113,7 +113,7 @@ pub fn show_thumb(x: i32, y: i32) {
             let window = builder.hidden_title(true).build().unwrap();
 
             #[cfg(not(target_os = "macos"))]
-            let window = builder.build().unwrap();
+            let window = builder.transparent(true).build().unwrap();
 
             window.unminimize().unwrap();
             window.show().unwrap();
