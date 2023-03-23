@@ -130,6 +130,7 @@ pub fn show_thumb(x: i32, y: i32) {
                     .unwrap();
             }
 
+            #[cfg(target_os = "macos")]
             set_shadow(&window, true).unwrap();
         }
     }
